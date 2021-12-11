@@ -34,6 +34,7 @@ async function run() {
 		const packageCollection = database.collection("packages");
 		const addServiceCollection = database.collection("addservice");
 		const userCollection = database.collection("user");
+		const reviewCollection = database.collection("review");
 
 		// GET API
 		app.get("/services", async (req, res) => {
@@ -57,18 +58,37 @@ async function run() {
 			const result = await orderCollection.insertOne(order);
 			res.send(result);
 		});
-		// find my order unique
 		app.get("/myorder", async (req, res) => {
 			const cursor = orderCollection.find({});
 			const myorder = await cursor.toArray();
 			res.send(myorder);
 		});
+		app.get("/payment", async (req, res) => {
+			const cursor = paymentCollection.find({});
+			const mypayment = await cursor.toArray();
+			res.send(mypayment);
+		});
+		// find my order unique
 		app.get("/myorder/:email", async (req, res) => {
 			const email = req.params.email;
-			console.log(email)
-			const quary = { userMail : email };
+			console.log(email);
+			const quary = { userMail: email };
 
 			const cursor = orderCollection.find(quary);
+			if ((await cursor.count()) === 0) {
+				console.log("No Data Found");
+			}
+
+			const result = await cursor.toArray();
+			res.send(result);
+		});
+		// find my payments histoeres
+		app.get("/payment/:email", async (req, res) => {
+			const email = req.params.email;
+			console.log(email);
+			const quary = { cus_email: email };
+
+			const cursor = paymentCollection.find(quary);
 			if ((await cursor.count()) === 0) {
 				console.log("No Data Found");
 			}
@@ -110,6 +130,14 @@ async function run() {
 			}
 			res.json({ admin: isAdmin });
 		});
+
+		// add new services
+		app.post("/addPackage", async (req, res) => {
+			const order = req.body;
+			const result = await serviceCollection.insertOne(order);
+			res.send(result);
+		});
+
 		// update api
 
 		app.post("/init", async (req, res) => {
@@ -231,8 +259,25 @@ async function run() {
 			const result = await orderCollection.deleteOne(query);
 			res.json(result);
 		});
+		// review
+		app.post("/reviews", async (req, res) => {
+			const review = req.body;
+			const reviewBack = await reviewCollection.insertOne(review);
+			res.send(reviewBack);
+		});
 
-		//sslcommerz init
+		app.get("/reviews", async (req, res) => {
+			const review = reviewCollection.find({});
+			const result = await review.toArray();
+			res.send(result);
+		});
+
+		app.get("/reviews", async (req, res) => {
+			console.log("object");
+			const cursor = reviewCollection.find({});
+			const result = await cursor.toArray();
+			res.send(result);
+		});
 	} finally {
 		// await client.close();
 	}
